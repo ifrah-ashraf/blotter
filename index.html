@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE BLOTTER — Month 1 Log</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --bg: #0a0c0a;
+    --bg-panel: #101310;
+    --line: #2a2f28;
+    --amber: #ffb000;
+    --amber-dim: #8a5f00;
+    --green: #4fd67a;
+    --green-dim: #1f4a30;
+    --red: #ff5b5b;
+    --text: #d8dcd4;
+    --text-dim: #6b7268;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{ padding: 20px 14px 60px; }
+  .wrap{ max-width: 760px; margin: 0 auto; }
+
+  .masthead{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom: 2px solid var(--amber-dim);
+    padding-bottom: 10px; margin-bottom: 4px;
+  }
+  .masthead h1{
+    font-size: 20px; letter-spacing: 3px; margin:0; color: var(--amber);
+    font-weight: 800;
+  }
+  .masthead .sub{ font-size: 10px; color: var(--text-dim); letter-spacing:1px; margin-top:4px;}
+  .ticker{ font-size: 11px; color: var(--text-dim); text-align:right; line-height:1.5;}
+  .ticker b{ color: var(--amber); font-size: 22px; display:block; }
+
+  .identity{
+    font-size: 11px; color: var(--green); border: 1px solid var(--green-dim);
+    background: rgba(79,214,122,0.05);
+    padding: 8px 10px; margin: 14px 0 20px; letter-spacing: 0.3px;
+  }
+  .identity span{ color: var(--text-dim); }
+
+  .stats{
+    display:grid; grid-template-columns: repeat(4,1fr); gap:1px;
+    background: var(--line); border:1px solid var(--line); margin-bottom: 20px;
+  }
+  .stat{ background: var(--bg-panel); padding: 10px 8px; text-align:center; }
+  .stat .n{ font-size: 20px; font-weight:700; color: var(--amber); }
+  .stat .l{ font-size: 8.5px; color: var(--text-dim); letter-spacing:1px; text-transform:uppercase; margin-top:3px;}
+
+  .sparkline{ margin-bottom: 20px; border:1px solid var(--line); background:var(--bg-panel); padding:10px;}
+  .sparkline .cap{ font-size:9px; color:var(--text-dim); letter-spacing:1px; margin-bottom:6px; text-transform:uppercase;}
+
+  .entry-form{
+    border:1px solid var(--line); background: var(--bg-panel); padding: 14px; margin-bottom: 20px;
+  }
+  .entry-form h2{
+    font-size: 12px; letter-spacing:2px; color:var(--amber); margin:0 0 12px;
+    text-transform:uppercase; display:flex; justify-content:space-between; align-items:center;
+  }
+  .loop-tag{ font-size:8px; color:var(--text-dim); letter-spacing:1px; border:1px solid var(--line); padding:2px 6px;}
+
+  .row{ display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+  .field{ flex:1; min-width:120px; }
+  .field label{ display:block; font-size:9px; color:var(--text-dim); letter-spacing:0.5px; margin-bottom:4px; text-transform:uppercase;}
+  .field .step-tag{ color:var(--green); font-size:8px; margin-left:4px;}
+  input[type=number], input[type=text], select{
+    width:100%; background:#000; border:1px solid var(--line); color:var(--text);
+    font-family:inherit; font-size:12px; padding:7px 8px;
+  }
+  input:focus, select:focus{ outline:none; border-color:var(--amber-dim); }
+  textarea{
+    width:100%; background:#000; border:1px solid var(--line); color:var(--text);
+    font-family:inherit; font-size:12px; padding:7px 8px; resize:vertical; min-height:46px;
+  }
+  .checkrow{ display:flex; gap:16px; margin-bottom:12px; flex-wrap:wrap;}
+  .check{ display:flex; align-items:center; gap:6px; font-size:11px; }
+  .check input{ width:15px; height:15px; accent-color: var(--amber); }
+
+  button{
+    width:100%; background: var(--amber); color:#000; border:none; padding:11px;
+    font-family:inherit; font-weight:700; font-size:12px; letter-spacing:1.5px;
+    cursor:pointer; text-transform:uppercase; margin-top: 4px;
+  }
+  button:active{ transform: translateY(1px); }
+  button.secondary{ background:transparent; color:var(--text-dim); border:1px solid var(--line); margin-top:8px;}
+
+  .log{ border:1px solid var(--line); }
+  .log-head{
+    display:grid; grid-template-columns: 60px 40px 1fr 1fr 1fr;
+    font-size:8.5px; color:var(--text-dim); letter-spacing:0.5px; text-transform:uppercase;
+    padding:8px 10px; border-bottom:1px solid var(--line); background:var(--bg-panel);
+  }
+  .log-row{
+    display:grid; grid-template-columns: 60px 40px 1fr 1fr 1fr;
+    font-size:11px; padding:9px 10px; border-bottom:1px solid var(--line); align-items:center;
+  }
+  .log-row:nth-child(odd){ background: rgba(255,255,255,0.015); }
+  .badge{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .badge.hit{ background: var(--green); }
+  .badge.miss{ background: var(--red); }
+  .muted{ color:var(--text-dim); font-size:10px;}
+  .empty{ padding: 30px 10px; text-align:center; color:var(--text-dim); font-size:11px; }
+
+  .foot{ text-align:center; font-size:9px; color:var(--text-dim); margin-top: 24px; letter-spacing:0.5px;}
+  .loading{ text-align:center; padding: 40px; color: var(--text-dim); font-size:11px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>THE BLOTTER</h1>
+      <div class="sub">MONTH 1 · FOUNDATION LOG · 0600&ndash;0900</div>
+    </div>
+    <div class="ticker">
+      <b id="streakNum">0</b>
+      DAY STREAK
+    </div>
+  </div>
+
+  <div class="identity">
+    <span>IDENTITY —</span> I am someone who trains like a competitive programmer and thinks like a systems engineer. Daily. No exceptions.
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n" id="statDays">0</div><div class="l">Days Logged</div></div>
+    <div class="stat"><div class="n" id="statProblems">0</div><div class="l">Problems Solved</div></div>
+    <div class="stat"><div class="n" id="statAcc">—</div><div class="l">Accuracy</div></div>
+    <div class="stat"><div class="n" id="statAvgTime">—</div><div class="l">Avg Solve (min)</div></div>
+  </div>
+
+  <div class="sparkline">
+    <div class="cap">Solve time trend (should trend down)</div>
+    <svg id="spark" width="100%" height="50" viewBox="0 0 700 50" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="entry-form">
+    <h2>Today's Entry <span class="loop-tag">CUE → CRAVING → RESPONSE → REWARD</span></h2>
+
+    <div class="checkrow">
+      <label class="check"><input type="checkbox" id="showedUp"> Showed up at 0600 (cue triggered)</label>
+      <label class="check"><input type="checkbox" id="mathDone"> Math reps done</label>
+      <label class="check"><input type="checkbox" id="systemsDone"> Systems task done</label>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Problems attempted</label>
+        <input type="number" id="dsaAttempted" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Solved correctly</label>
+        <input type="number" id="dsaCorrect" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Avg solve time (min)</label>
+        <input type="number" id="dsaTime" min="0" placeholder="0">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Math topic drilled</label>
+        <input type="text" id="mathTopic" placeholder="e.g. Bayes' theorem">
+      </div>
+      <div class="field">
+        <label>Systems task</label>
+        <input type="text" id="systemsTask" placeholder="e.g. added mutex to cache">
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:12px;">
+      <label>Post-mortem — what broke down, one line <span class="step-tag">(reward: this closes the loop)</span></label>
+      <textarea id="reflection" placeholder="Missed the edge case where the window is empty..."></textarea>
+    </div>
+
+    <button onclick="saveEntry()">Log Today &amp; Extend Streak</button>
+    <button class="secondary" onclick="if(confirm('Clear all logged entries? This cannot be undone.')) resetAll()">Reset Log</button>
+  </div>
+
+  <div class="log">
+    <div class="log-head">
+      <div>Date</div><div>Hit</div><div>Problems</div><div>Math</div><div>Note</div>
+    </div>
+    <div id="logBody"><div class="empty">Loading...</div></div>
+  </div>
+
+  <div class="foot">30 DAYS TO FOUNDATION · NO COMPROMISE ON THE FLOOR</div>
+</div>
+
+<script>
+let entries = {};
+
+async function loadEntries(){
+  try{
+    const res = await window.storage.get('blotter:entries', false);
+    entries = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){
+    entries = {};
+  }
+  render();
+}
+
+async function persist(){
+  try{
+    await window.storage.set('blotter:entries', JSON.stringify(entries), false);
+  }catch(e){
+    console.error('Storage failed', e);
+    alert('Could not save — please try again.');
+  }
+}
+
+function todayKey(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+async function saveEntry(){
+  const attempted = parseInt(document.getElementById('dsaAttempted').value) || 0;
+  const correct = parseInt(document.getElementById('dsaCorrect').value) || 0;
+  const time = parseFloat(document.getElementById('dsaTime').value) || 0;
+
+  const entry = {
+    date: todayKey(),
+    showedUp: document.getElementById('showedUp').checked,
+    mathDone: document.getElementById('mathDone').checked,
+    systemsDone: document.getElementById('systemsDone').checked,
+    dsaAttempted: attempted,
+    dsaCorrect: correct,
+    dsaTime: time,
+    mathTopic: document.getElementById('mathTopic').value.trim(),
+    systemsTask: document.getElementById('systemsTask').value.trim(),
+    reflection: document.getElementById('reflection').value.trim()
+  };
+
+  entries[entry.date] = entry;
+  await persist();
+
+  ['dsaAttempted','dsaCorrect','dsaTime','mathTopic','systemsTask','reflection'].forEach(id=>{
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('showedUp').checked = false;
+  document.getElementById('mathDone').checked = false;
+  document.getElementById('systemsDone').checked = false;
+
+  render();
+}
+
+async function resetAll(){
+  entries = {};
+  await persist();
+  render();
+}
+
+function metFloor(e){
+  return e.showedUp && e.dsaAttempted >= 1 && e.mathDone;
+}
+
+function computeStreak(sortedDates){
+  let streak = 0;
+  const today = new Date();
+  for(let i=0; i<400; i++){
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const e = entries[key];
+    if(e && metFloor(e)){
+      streak++;
+    } else if(i === 0){
+      continue; // allow today to still be open
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function render(){
+  const dates = Object.keys(entries).sort();
+  const logBody = document.getElementById('logBody');
+
+  if(dates.length === 0){
+    logBody.innerHTML = '<div class="empty">No entries yet. Log today\'s block above.</div>';
+  } else {
+    logBody.innerHTML = dates.slice().reverse().map(d=>{
+      const e = entries[d];
+      const hit = metFloor(e);
+      return `<div class="log-row">
+        <div class="muted">${d.slice(5)}</div>
+        <div><span class="badge ${hit ? 'hit':'miss'}"></span></div>
+        <div>${e.dsaCorrect}/${e.dsaAttempted} · ${e.dsaTime||0}m</div>
+        <div class="muted">${e.mathTopic || '—'}</div>
+        <div class="muted">${(e.reflection||'').slice(0,40)}${(e.reflection||'').length>40?'…':''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('streakNum').textContent = computeStreak(dates);
+  document.getElementById('statDays').textContent = dates.length;
+
+  const totalProblems = dates.reduce((s,d)=>s + (entries[d].dsaAttempted||0), 0);
+  const totalCorrect = dates.reduce((s,d)=>s + (entries[d].dsaCorrect||0), 0);
+  document.getElementById('statProblems').textContent = totalProblems;
+  document.getElementById('statAcc').textContent = totalProblems ? Math.round(100*totalCorrect/totalProblems) + '%' : '—';
+
+  const timedDays = dates.filter(d=>entries[d].dsaTime>0);
+  const avgTime = timedDays.length ? (timedDays.reduce((s,d)=>s+entries[d].dsaTime,0)/timedDays.length) : 0;
+  document.getElementById('statAvgTime').textContent = timedDays.length ? avgTime.toFixed(1) : '—';
+
+  drawSparkline(dates);
+}
+
+function drawSparkline(dates){
+  const svg = document.getElementById('spark');
+  const timed = dates.filter(d=>entries[d].dsaTime>0).map(d=>entries[d].dsaTime);
+  if(timed.length < 2){
+    svg.innerHTML = '<text x="10" y="28" fill="#6b7268" font-size="10" font-family="JetBrains Mono">Not enough data yet</text>';
+    return;
+  }
+  const max = Math.max(...timed);
+  const min = Math.min(...timed);
+  const range = (max - min) || 1;
+  const w = 700, h = 50, pad = 6;
+  const pts = timed.map((v,i)=>{
+    const x = pad + (i/(timed.length-1)) * (w - pad*2);
+    const y = h - pad - ((v-min)/range) * (h - pad*2);
+    return `${x},${y}`;
+  }).join(' ');
+  svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="#ffb000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+
+loadEntries();
+</script>
+</body>
+</html>
