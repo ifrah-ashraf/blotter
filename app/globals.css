@@ -1,6 +1,5 @@
+/* stylelint-disable at-rule-no-unknown */
 @import "tailwindcss";
-
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
 
@@ -165,3 +164,4 @@
   .blotter-masthead h1 { font-size: 16px; letter-spacing: 3px; }
   .blotter-goal-text { font-size: 13px; }
 }
+/* stylelint-enable at-rule-no-unknown */
