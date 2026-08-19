@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from 'next/font/google'
 import "./globals.css";
+import {Providers} from './provider'
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`h-full antialiased ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans"><Providers>
+          {children}
+        </Providers></body>
     </html>
   );
 }
