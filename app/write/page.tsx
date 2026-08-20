@@ -73,8 +73,9 @@ export default function WritePage() {
   const isLoading = entryQuery.isLoading || goalQuery.isLoading;
   // A missing entry is the normal first-run state for write mode; the editor creates it.
   const isError = goalQuery.isError;
+  // fix the bimaari of unecessary animation on changing tab
   return (
-    <div className="page-enter">
+    <div> 
       <div className="blotter-app">
         <div className="blotter-wrap">
           <div>

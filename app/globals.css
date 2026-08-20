@@ -117,7 +117,7 @@
   }
 }
 
-.page-enter { animation: page-enter .25s ease-out both; }
+.page-enter { animation: page-enter .10s ease-out both; }
 @keyframes page-enter { from { opacity: 0; } to { opacity: 1; } }
 .blotter-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
 .blotter-scroll::-webkit-scrollbar-thumb { background: #262b23; }
