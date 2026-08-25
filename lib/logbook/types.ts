@@ -18,12 +18,12 @@ export type LogEntryInput = {
   other: string;
 };
 
-export type MonthlyGoal = {
-  month: string;
-  text: string;
-  locked: boolean;
-  resetDate: string;
-};
+// export type MonthlyGoal = {
+//   month: string;
+//   text: string;
+//   locked: boolean;
+//   resetDate: string;
+// };
 
 export type LogbookSummary = {
   currentStreak: number;
@@ -41,3 +41,18 @@ export type LogbookState = {
 export function isEntryIntensity(value: unknown): value is EntryIntensity {
   return value === 1 || value === 2 || value === 3 || value === 4;
 }
+
+// API schema for different component
+export type MonthlyGoal = {
+  id: string ;
+  month: string ;
+  text: string ;
+  created_at?: string ;
+  updated_at?: string ;
+};
+
+// API Response structure
+export type GoalsResponse = {
+  month: string;
+  goals: MonthlyGoal[];
+};
