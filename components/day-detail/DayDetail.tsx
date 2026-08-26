@@ -13,7 +13,7 @@ const displayDate = (date: string) => new Intl.DateTimeFormat('en', { month: 'sh
 const Field = ({ label, value, testId }: { label: string; value: string; testId: string }) => (
   <div className="log-item mb-3 last:mb-0" data-testid={testId}>
     <p className="mb-[3px] text-[9px] uppercase tracking-[1.5px] text-[#8a5f00]">{label}</p>
-    <p className={`whitespace-pre-wrap text-[12.5px] leading-[1.5] text-[#d8dcd4] ${!value ? 'italic text-[#454b41]' : ''}`}>{value || 'nothing noted'}</p>
+    <p className={`whitespace-pre-wrap text-[12.5px] leading-[1.5] text-[#d8dcd4] ${!value ? 'italic text-[#454b41]' : ''}`}>{value || '-'}</p>
   </div>
 );
 

@@ -14,7 +14,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { EntryEditor } from "@/components/write/EntryEditor";
 import { GoalCard } from "@/components/goal/GoalCard";
-import { toDateKey } from "@/components/calender/ActivityHeatmap";
+import { toDateKey } from "@/lib/logbook/date"; 
 
 export default function WritePage() {
   const queryClient = useQueryClient();
