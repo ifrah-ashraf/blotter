@@ -42,13 +42,14 @@ export function isEntryIntensity(value: unknown): value is EntryIntensity {
   return value === 1 || value === 2 || value === 3 || value === 4;
 }
 
-// API schema for different component
+// API schema for monthly goal component
 export type MonthlyGoal = {
   id: string ;
   month: string ;
   text: string ;
   created_at?: string ;
   updated_at?: string ;
+  achieved: boolean | null;
 };
 
 // API Response structure

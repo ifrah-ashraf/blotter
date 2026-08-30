@@ -38,3 +38,12 @@ export function getRollingYearRange(): DateRange {
   from.setDate(from.getDate() + 1);
   return { from: toDateKey(from), to: toDateKey(to) };
 }
+
+export function getMonthlyGoalWindows(date: Date) {
+  const day = date.getDate();
+  const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  return {
+    canEditGoal: day <= 3,
+    canMarkAchieved: day <= 3 || day > daysInMonth - 3,
+  };
+}
