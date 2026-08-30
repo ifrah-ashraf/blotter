@@ -1,56 +1,78 @@
 import type { EntryIntensity, LogEntry, LogEntryInput } from '@/lib/logbook/types';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { SyntheticEvent } from 'react';
 
 type EntryEditorProps = {
   date: string;
-  entry?: LogEntry;
+  entry?: LogEntryInput;
   isSaving: boolean;
   saveError?: string;
   onSave: (data: LogEntryInput) => void;
-  onDelete: () => void;
 };
 
-const blank: Omit<LogEntryInput, 'date'> = { intensity: 3, dsa: '', development: '', other: '' };
+const SECTIONS = [
+  { key: 'dsa' as const, label: 'dsa' },
+  { key: 'development' as const, label: 'development' },
+  { key: 'other' as const, label: 'maths / other' },
+];
 
-export function EntryEditor({ date, entry, isSaving, saveError, onSave, onDelete }: EntryEditorProps) {
-  const initialForm = entry ? { intensity: entry.intensity, dsa: entry.dsa, development: entry.development, other: entry.other } : blank;
-  const [form, setForm] = useState(initialForm);
+const blank = { intensity: 3 as EntryIntensity, dsa: '', development: '', other: '' };
+
+export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryEditorProps) {
+  const [form, setForm] = useState(blank);
   const [validation, setValidation] = useState('');
 
-  const update = (field: keyof typeof form, value: string | EntryIntensity) =>
-    setForm((current) => ({ ...current, [field]: value }));
-  
+  if (entry) {
+    return (
+      <section className="blotter-panel" data-testid="panel-entry-logged">
+        <div className="blotter-panel-label">today's log</div>
+        <p className="mb-4 text-[11px] leading-6 text-[#6b7268]">
+          Logged for today. Come back tomorrow to write the next page.
+        </p>
+        {SECTIONS.map(({ key, label }) =>
+          entry[key] ? (
+            <div key={key} className="mb-4 last:mb-0">
+              <div className="mb-[6px] text-[9px] uppercase tracking-[1.5px] text-[#6b7268]">{label}</div>
+              <p className="whitespace-pre-wrap text-[13px] leading-[1.5] text-[#d8dcd4]">{entry[key]}</p>
+            </div>
+          ) : null,
+        )}
+      </section>
+    );
+  }
+
+  const updateContent = (key: 'dsa' | 'development' | 'other', value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
+  const updateIntensity = (value: EntryIntensity) =>
+    setForm((current) => ({ ...current, intensity: value }));
+
   const submit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.dsa.trim() && !form.development.trim() && !form.other.trim()) { 
-      setValidation('Leave one trace before saving. One sentence is enough.'); 
-      return; 
+    if (!form.dsa.trim() && !form.development.trim() && !form.other.trim()) {
+      setValidation('Leave one trace before saving. One sentence is enough.');
+      return;
     }
     setValidation('');
     onSave({ date, ...form });
   };
-  
+
   return (
     <form onSubmit={submit} className="blotter-panel" data-testid="form-entry-editor">
       <div className="blotter-panel-label">today's log</div>
       <div>
-        {[
-          { key: 'dsa' as const, label: 'dsa', hint: 'What you worked through today...' },
-          { key: 'development' as const, label: 'development', hint: 'What you built or fixed...' },
-          { key: 'other' as const, label: 'maths / other', hint: 'What you drilled...' },
-        ].map((field) => (
-          <div key={field.key} className="mb-4 last:mb-0">
-            <label htmlFor={`entry-${field.key}`} className="mb-[6px] block text-[9px] uppercase tracking-[1.5px] text-[#6b7268]">
-              {field.label}
+        {SECTIONS.map(({ key, label }) => (
+          <div key={key} className="mb-4 last:mb-0">
+            <label htmlFor={`entry-${key}`} className="mb-[6px] block text-[9px] uppercase tracking-[1.5px] text-[#6b7268]">
+              {label}
             </label>
-            <textarea 
-              id={`entry-${field.key}`} 
-              value={form[field.key]} 
-              onChange={(event) => update(field.key, event.target.value)} 
-              placeholder={field.hint} 
-              data-testid={`input-entry-${field.key}`} 
-              className="min-h-[60px] w-full resize-y border border-[#262b23] bg-black p-[10px] text-[13px] leading-[1.5] text-[#d8dcd4] outline-none placeholder:text-[#6b7268] focus:border-[#8a5f00]" 
+            <textarea
+              id={`entry-${key}`}
+              value={form[key]}
+              onChange={(event) => updateContent(key, event.target.value)}
+              placeholder="What did you work through today..."
+              data-testid={`input-entry-${key}`}
+              className="min-h-[60px] w-full resize-y border border-[#262b23] bg-black p-[10px] text-[13px] leading-[1.5] text-[#d8dcd4] outline-none placeholder:text-[#6b7268] focus:border-[#8a5f00]"
             />
           </div>
         ))}
@@ -65,19 +87,18 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave, onDelete
               { level: 3, label: 'solid' },
               { level: 4, label: 'grind' },
             ].map(({ level, label }) => (
-              <button 
-                key={level} 
-                type="button" 
-                onClick={() => update('intensity', level)} 
-                data-testid={`button-intensity-${level}`} 
+              <button
+                key={level}
+                type="button"
+                onClick={() => updateIntensity(level as EntryIntensity)}
+                data-testid={`button-intensity-${level}`}
                 className={`min-w-0 flex-1 border px-1 py-[9px] text-center text-[10px] uppercase tracking-[.5px] transition-colors ${
-                  form.intensity === level 
-                    ? (level === 3 
-                        ? 'border-[#4fa63f] bg-[#4fa63f] font-bold text-black' 
-                        : level === 4 
-                          ? 'border-[#ffb000] bg-[#ffb000] font-bold text-black' 
-                          : 'border-[#3d6b34] bg-[#3d6b34] text-[#d8dcd4]'
-                      ) 
+                  form.intensity === level
+                    ? level === 3
+                      ? 'border-[#4fa63f] bg-[#4fa63f] font-bold text-black'
+                      : level === 4
+                        ? 'border-[#ffb000] bg-[#ffb000] font-bold text-black'
+                        : 'border-[#3d6b34] bg-[#3d6b34] text-[#d8dcd4]'
                     : 'border-[#262b23] bg-transparent text-[#6b7268] hover:border-[#8a5f00] hover:text-[#d8dcd4]'
                 }`}
               >
@@ -92,24 +113,14 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave, onDelete
           {validation || saveError}
         </p>
       )}
-      <button 
-        type="submit" 
-        disabled={isSaving} 
-        data-testid="button-save-entry" 
+      <button
+        type="submit"
+        disabled={isSaving}
+        data-testid="button-save-entry"
         className="mt-[22px] w-full bg-[#ffb000] px-4 py-3 text-[11.5px] font-bold uppercase tracking-[1.5px] text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
       >
         {isSaving ? 'saving' : 'log today'}
       </button>
-      {entry && (
-        <button 
-          type="button" 
-          onClick={onDelete} 
-          data-testid="button-delete-today-entry" 
-          className="mt-3 block w-full text-center text-[9px] uppercase tracking-[1px] text-[#454b41] hover:text-destructive"
-        >
-          remove entry
-        </button>
-      )}
     </form>
   );
 }

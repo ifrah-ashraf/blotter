@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
+import { MonthlyGoal } from '@/lib/logbook/types'; 
 // Types
 export type EntryIntensity = 1 | 2 | 3 | 4;
 
@@ -17,11 +17,6 @@ export interface LogEntryInput {
   dsa: string;
   development: string;
   other: string;
-}
-
-export interface MonthlyGoal {
-  goal: string;
-  month: string;
 }
 
 export interface GoalInput {
@@ -57,10 +52,16 @@ const mockEntries: LogEntry[] = [
   }
 ];
 
+// dummy data to mock goal
 const mockGoal: MonthlyGoal = {
-  goal: 'Complete 30 days of coding',
-  month: '2024-01'
+  id: 'goal-2026-08',
+  month: '2026-08',
+  text: 'Complete 30 days of coding shoding',
+  achieved: null,
+  created_at: '2026-08-30T00:00:00.000Z',
+  updated_at: '2026-08-30T00:00:00.000Z',
 };
+
 
 const mockSummary: LogbookSummary = {
   totalEntries: 25,
@@ -68,7 +69,7 @@ const mockSummary: LogbookSummary = {
   averageIntensity: 3.2
 };
 
-// Helper function to simulate API delay
+// Helper function to simulate API delay this making the page feel slow
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Query keys
@@ -93,7 +94,7 @@ export function useListEntries(params?: ListEntriesParams) {
   return useQuery({
     queryKey: getListEntriesQueryKey(params),
     queryFn: async () => {
-      await delay(300); // Simulate network delay
+      // await delay(0); // Simulate network delay
       return mockEntries;
     },
   });
@@ -103,7 +104,7 @@ export function useGetEntry(date: string) {
   return useQuery({
     queryKey: getGetEntryQueryKey(date),
     queryFn: async () => {
-      await delay(300);
+      //await delay(0); // mock function don't fill unecessary api delay
       const entry = mockEntries.find(e => e.date === date);
       if (!entry) throw new Error('Entry not found');
       return entry;
@@ -116,7 +117,7 @@ export function useGetSummary() {
   return useQuery({
     queryKey: getGetSummaryQueryKey(),
     queryFn: async () => {
-      await delay(300);
+      //await delay(0);
       return mockSummary;
     },
   });
@@ -126,7 +127,7 @@ export function useGetGoal() {
   return useQuery({
     queryKey: getGetGoalQueryKey(),
     queryFn: async () => {
-      await delay(300);
+      //await delay(0);
       return mockGoal;
     },
   });
@@ -138,7 +139,7 @@ export function useCreateEntry() {
   
   return useMutation({
     mutationFn: async (input: LogEntryInput) => {
-      await delay(300);
+      //await delay(300);
       const newEntry: LogEntry = { ...input };
       mockEntries.push(newEntry);
       return newEntry;
@@ -159,7 +160,7 @@ export function useUpdateEntry() {
   
   return useMutation({
     mutationFn: async ({ date, data }: { date: string; data: LogEntryInput }) => {
-      await delay(300);
+      //await delay(0);
       const index = mockEntries.findIndex(e => e.date === date);
       if (index !== -1) {
         mockEntries[index] = { ...data, date };
@@ -183,7 +184,7 @@ export function useDeleteEntry() {
   
   return useMutation({
     mutationFn: async (date: string) => {
-      await delay(300);
+      // await delay(0);
       const index = mockEntries.findIndex(e => e.date === date);
       if (index !== -1) {
         mockEntries.splice(index, 1);
@@ -205,12 +206,27 @@ export function useUpdateGoal() {
   
   return useMutation({
     mutationFn: async (input: GoalInput) => {
-      await delay(300);
+      // await delay(0);
       mockGoal.goal = input.goal;
       return mockGoal;
     },
     onSuccess: (updatedGoal) => {
       queryClient.setQueryData(getGetGoalQueryKey(), updatedGoal);
+    },
+  });
+}
+
+// add alongside useUpdateGoal
+export function useCreateGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: GoalInput) => {
+      const created: MonthlyGoal = { ...mockGoal, goal: input.goal };
+      return created;
+    },
+    onSuccess: (goal) => {
+      queryClient.setQueryData(getGetGoalQueryKey(), goal);
     },
   });
 }
