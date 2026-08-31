@@ -50,6 +50,7 @@ export type MonthlyGoal = {
   created_at?: string ;
   updated_at?: string ;
   achieved: boolean | null;
+  locked?: boolean;
 };
 
 // API Response structure
