@@ -1,26 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { MonthlyGoal } from '@/lib/logbook/types'; 
-// Types
-export type EntryIntensity = 1 | 2 | 3 | 4;
-
-export interface LogEntry {
-  date: string;
-  intensity: EntryIntensity;
-  dsa: string;
-  development: string;
-  other: string;
-}
-
-export interface LogEntryInput {
-  date: string;
-  intensity: EntryIntensity;
-  dsa: string;
-  development: string;
-  other: string;
-}
+import type { EntryIntensity, LogEntry, LogEntryInput, MonthlyGoal } from '@/lib/logbook/types';
 
 export interface GoalInput {
-  goal: string;
+  text: string;
 }
 
 export interface LogbookSummary {
@@ -41,18 +23,21 @@ const mockEntries: LogEntry[] = [
     intensity: 3,
     dsa: 'Solved binary tree problems',
     development: 'Built a React component',
-    other: 'Practiced calculus'
+    other: 'Practiced calculus',
+    createdAt: '2024-01-15T12:00:00.000Z',
+    updatedAt: '2024-01-15T12:00:00.000Z',
   },
   {
     date: '2024-01-16',
     intensity: 4,
     dsa: 'Graph algorithms',
     development: 'API integration',
-    other: 'Linear algebra'
-  }
+    other: 'Linear algebra',
+    createdAt: '2024-01-16T12:00:00.000Z',
+    updatedAt: '2024-01-16T12:00:00.000Z',
+  },
 ];
 
-// dummy data to mock goal
 const mockGoal: MonthlyGoal = {
   id: 'goal-2026-08',
   month: '2026-08',
@@ -62,17 +47,12 @@ const mockGoal: MonthlyGoal = {
   updated_at: '2026-08-30T00:00:00.000Z',
 };
 
-
 const mockSummary: LogbookSummary = {
   totalEntries: 25,
   currentStreak: 5,
-  averageIntensity: 3.2
+  averageIntensity: 3.2,
 };
 
-// Helper function to simulate API delay this making the page feel slow
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Query keys
 export const getListEntriesQueryKey = (params?: ListEntriesParams) => {
   return ['/api/entries', ...(params ? [params] : [])] as const;
 };
@@ -89,14 +69,10 @@ export const getGetGoalQueryKey = () => {
   return ['/api/goal'] as const;
 };
 
-// Query hooks
 export function useListEntries(params?: ListEntriesParams) {
   return useQuery({
     queryKey: getListEntriesQueryKey(params),
-    queryFn: async () => {
-      // await delay(0); // Simulate network delay
-      return mockEntries;
-    },
+    queryFn: async () => mockEntries,
   });
 }
 
@@ -104,8 +80,7 @@ export function useGetEntry(date: string) {
   return useQuery({
     queryKey: getGetEntryQueryKey(date),
     queryFn: async () => {
-      //await delay(0); // mock function don't fill unecessary api delay
-      const entry = mockEntries.find(e => e.date === date);
+      const entry = mockEntries.find((e) => e.date === date);
       if (!entry) throw new Error('Entry not found');
       return entry;
     },
@@ -116,113 +91,43 @@ export function useGetEntry(date: string) {
 export function useGetSummary() {
   return useQuery({
     queryKey: getGetSummaryQueryKey(),
-    queryFn: async () => {
-      //await delay(0);
-      return mockSummary;
-    },
+    queryFn: async () => mockSummary,
   });
 }
 
 export function useGetGoal() {
   return useQuery({
     queryKey: getGetGoalQueryKey(),
-    queryFn: async () => {
-      //await delay(0);
-      return mockGoal;
-    },
+    queryFn: async () => mockGoal,
   });
 }
 
-// Mutation hooks
 export function useCreateEntry() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (input: LogEntryInput) => {
-      //await delay(300);
-      const newEntry: LogEntry = { ...input };
+      const now = new Date().toISOString();
+      const newEntry: LogEntry = { ...input, createdAt: now, updatedAt: now };
       mockEntries.push(newEntry);
       return newEntry;
     },
     onSuccess: (newEntry) => {
-      // Update cache
-      queryClient.setQueryData<LogEntry[]>(
-        getListEntriesQueryKey(),
-        (old) => old ? [...old, newEntry] : [newEntry]
+      queryClient.setQueryData<LogEntry[]>(getListEntriesQueryKey(), (old) =>
+        old ? [...old, newEntry] : [newEntry],
       );
       queryClient.setQueryData(getGetEntryQueryKey(newEntry.date), newEntry);
     },
   });
 }
 
-export function useUpdateEntry() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ date, data }: { date: string; data: LogEntryInput }) => {
-      //await delay(0);
-      const index = mockEntries.findIndex(e => e.date === date);
-      if (index !== -1) {
-        mockEntries[index] = { ...data, date };
-        return mockEntries[index];
-      }
-      throw new Error('Entry not found');
-    },
-    onSuccess: (updatedEntry) => {
-      // Update cache
-      queryClient.setQueryData<LogEntry[]>(
-        getListEntriesQueryKey(),
-        (old) => old?.map(e => e.date === updatedEntry.date ? updatedEntry : e)
-      );
-      queryClient.setQueryData(getGetEntryQueryKey(updatedEntry.date), updatedEntry);
-    },
-  });
-}
-
-export function useDeleteEntry() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (date: string) => {
-      // await delay(0);
-      const index = mockEntries.findIndex(e => e.date === date);
-      if (index !== -1) {
-        mockEntries.splice(index, 1);
-      }
-    },
-    onSuccess: (_, date) => {
-      // Update cache
-      queryClient.setQueryData<LogEntry[]>(
-        getListEntriesQueryKey(),
-        (old) => old?.filter(e => e.date !== date)
-      );
-      queryClient.removeQueries({ queryKey: getGetEntryQueryKey(date) });
-    },
-  });
-}
-
-export function useUpdateGoal() {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (input: GoalInput) => {
-      // await delay(0);
-      mockGoal.goal = input.goal;
-      return mockGoal;
-    },
-    onSuccess: (updatedGoal) => {
-      queryClient.setQueryData(getGetGoalQueryKey(), updatedGoal);
-    },
-  });
-}
-
-// add alongside useUpdateGoal
 export function useCreateGoal() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: GoalInput) => {
-      const created: MonthlyGoal = { ...mockGoal, goal: input.goal };
+      const now = new Date().toISOString();
+      const created: MonthlyGoal = { ...mockGoal, text: input.text, created_at: now, updated_at: now };
       return created;
     },
     onSuccess: (goal) => {

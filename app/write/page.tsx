@@ -10,8 +10,8 @@ import {
   useGetEntry,
   useGetGoal,
   useCreateGoal,
-  type LogEntryInput,
 } from "@/api-client";
+import { LogEntryInput } from "@/lib/logbook/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { EntryEditor } from "@/components/write/EntryEditor";
 import { GoalCard } from "@/components/goal/GoalCard";
@@ -31,11 +31,9 @@ export default function WritePage() {
   const [savedNotice, setSavedNotice] = useState("");
   const [goalDraft, setGoalDraft] = useState("");
 
-  useEffect(() => {
-    if (goalQuery.data) {
-      setGoalDraft(goalQuery.data.text);
-    }
-  }, [goalQuery.data]);
+  // useEffect(() => {
+  //   setGoalDraft(goalQuery.data?.goal ?? ""); 
+  // }, [goalQuery.data]);
 
   const createEntry = useCreateEntry();
   const createGoal = useCreateGoal();
@@ -74,7 +72,7 @@ export default function WritePage() {
     const trimmed = goalDraft.trim();
     if (!trimmed) return;
     createGoal.mutate(
-      { goal: trimmed },
+      { text: trimmed },
       {
         onSuccess: () => {
           void queryClient.invalidateQueries({
