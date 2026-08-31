@@ -73,8 +73,8 @@ export function GoalCard({
           )}
         </div>
       ) : (
-        <p className={`blotter-goal-text ${!goal?.goal ? 'text-[#6b7268] italic text-xs' : ''}`} data-testid="text-current-goal">
-          {goal?.goal || 'No goal set for this month.'}
+        <p className={`blotter-goal-text ${!goal ? 'text-[#6b7268] italic text-xs' : ''}`} data-testid="text-current-goal">
+          {goal?.text || 'No goal set for this month.'}
         </p>
       )}
 

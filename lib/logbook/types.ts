@@ -1,59 +1,137 @@
-export type EntryIntensity = 1 | 2 | 3 | 4;
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { EntryIntensity, LogEntry, LogEntryInput, MonthlyGoal } from '@/lib/logbook/types';
 
-export type LogEntry = {
-  date: string;
-  intensity: EntryIntensity;
-  dsa: string;
-  development: string;
-  other: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type LogEntryInput = {
-  date: string;
-  intensity: EntryIntensity;
-  dsa: string;
-  development: string;
-  other: string;
-};
-
-// export type MonthlyGoal = {
-//   month: string;
-//   text: string;
-//   locked: boolean;
-//   resetDate: string;
-// };
-
-export type LogbookSummary = {
-  currentStreak: number;
-  activeDays: number;
-  totalEntries: number;
-  averageIntensity: number;
-  lastLoggedDate: string | null;
-};
-
-export type LogbookState = {
-  entries: LogEntry[];
-  goals: Record<string, MonthlyGoal>;
-};
-
-export function isEntryIntensity(value: unknown): value is EntryIntensity {
-  return value === 1 || value === 2 || value === 3 || value === 4;
+export interface GoalInput {
+  text: string;
 }
 
-// API schema for monthly goal component
-export type MonthlyGoal = {
-  id: string ;
-  month: string ;
-  text: string ;
-  created_at?: string ;
-  updated_at?: string ;
-  achieved: boolean | null;
+export interface LogbookSummary {
+  totalEntries: number;
+  currentStreak: number;
+  averageIntensity: number;
+}
+
+export interface ListEntriesParams {
+  startDate?: string;
+  endDate?: string;
+}
+
+// Mock data
+const mockEntries: LogEntry[] = [
+  {
+    date: '2024-01-15',
+    intensity: 3,
+    dsa: 'Solved binary tree problems',
+    development: 'Built a React component',
+    other: 'Practiced calculus',
+    createdAt: '2024-01-15T12:00:00.000Z',
+    updatedAt: '2024-01-15T12:00:00.000Z',
+  },
+  {
+    date: '2024-01-16',
+    intensity: 4,
+    dsa: 'Graph algorithms',
+    development: 'API integration',
+    other: 'Linear algebra',
+    createdAt: '2024-01-16T12:00:00.000Z',
+    updatedAt: '2024-01-16T12:00:00.000Z',
+  },
+];
+
+const mockGoal: MonthlyGoal = {
+  id: 'goal-2026-08',
+  month: '2026-08',
+  text: 'Complete 30 days of coding shoding',
+  achieved: null,
+  created_at: '2026-08-30T00:00:00.000Z',
+  updated_at: '2026-08-30T00:00:00.000Z',
 };
 
-// API Response structure
-export type GoalsResponse = {
-  month: string;
-  goals: MonthlyGoal[];
+const mockSummary: LogbookSummary = {
+  totalEntries: 25,
+  currentStreak: 5,
+  averageIntensity: 3.2,
 };
+
+export const getListEntriesQueryKey = (params?: ListEntriesParams) => {
+  return ['/api/entries', ...(params ? [params] : [])] as const;
+};
+
+export const getGetEntryQueryKey = (date: string) => {
+  return [`/api/entries/${date}`] as const;
+};
+
+export const getGetSummaryQueryKey = () => {
+  return ['/api/summary'] as const;
+};
+
+export const getGetGoalQueryKey = () => {
+  return ['/api/goal'] as const;
+};
+
+export function useListEntries(params?: ListEntriesParams) {
+  return useQuery({
+    queryKey: getListEntriesQueryKey(params),
+    queryFn: async () => mockEntries,
+  });
+}
+
+export function useGetEntry(date: string) {
+  return useQuery({
+    queryKey: getGetEntryQueryKey(date),
+    queryFn: async () => {
+      const entry = mockEntries.find((e) => e.date === date);
+      if (!entry) throw new Error('Entry not found');
+      return entry;
+    },
+    enabled: !!date,
+  });
+}
+
+export function useGetSummary() {
+  return useQuery({
+    queryKey: getGetSummaryQueryKey(),
+    queryFn: async () => mockSummary,
+  });
+}
+
+export function useGetGoal() {
+  return useQuery({
+    queryKey: getGetGoalQueryKey(),
+    queryFn: async () => mockGoal,
+  });
+}
+
+export function useCreateEntry() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: LogEntryInput) => {
+      const now = new Date().toISOString();
+      const newEntry: LogEntry = { ...input, createdAt: now, updatedAt: now };
+      mockEntries.push(newEntry);
+      return newEntry;
+    },
+    onSuccess: (newEntry) => {
+      queryClient.setQueryData<LogEntry[]>(getListEntriesQueryKey(), (old) =>
+        old ? [...old, newEntry] : [newEntry],
+      );
+      queryClient.setQueryData(getGetEntryQueryKey(newEntry.date), newEntry);
+    },
+  });
+}
+
+export function useCreateGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: GoalInput) => {
+      const now = new Date().toISOString();
+      const created: MonthlyGoal = { ...mockGoal, text: input.text, created_at: now, updated_at: now };
+      return created;
+    },
+    onSuccess: (goal) => {
+      queryClient.setQueryData(getGetGoalQueryKey(), goal);
+    },
+  });
+}
