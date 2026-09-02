@@ -14,7 +14,7 @@ import {
 import { LogEntryInput } from "@/lib/logbook/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { EntryEditor } from "@/components/write/EntryEditor";
-import { GoalCard } from "@/components/goal/GoalCard";
+import { GoalCard } from "@/components/goal/goal-write/GoalCard";
 import { toDateKey, getMonthlyGoalWindows } from "@/lib/logbook/date";
 
 export default function WritePage() {
@@ -111,7 +111,7 @@ export default function WritePage() {
 
         {isLoading && (
           <p className="mb-5 font-mono text-[10px] uppercase tracking-[1px] text-[#6b7268]">
-            opening today's page…
+            opening today&apos;s page…
           </p>
         )}
 
@@ -121,7 +121,7 @@ export default function WritePage() {
               write mode / unavailable
             </p>
             <p className="mt-2 text-[11.5px] leading-7 text-[#6b7268]">
-              Today's page could not be opened. Try the connection again before
+              Today&apos;s page could not be opened. Try the connection again before
               writing.
             </p>
             <button
