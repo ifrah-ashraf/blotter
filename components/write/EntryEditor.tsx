@@ -25,7 +25,7 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryE
   if (entry) {
     return (
       <section className="blotter-panel" data-testid="panel-entry-logged">
-        <div className="blotter-panel-label">today's log</div>
+        <div className="blotter-panel-label">today&apos;s log</div>
         <p className="mb-4 text-[11px] leading-6 text-[#6b7268]">
           Logged for today. Come back tomorrow to write the next page.
         </p>
@@ -59,7 +59,7 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryE
 
   return (
     <form onSubmit={submit} className="blotter-panel" data-testid="form-entry-editor">
-      <div className="blotter-panel-label">today's log</div>
+      <div className="blotter-panel-label">today&apos;s log</div>
       <div>
         {SECTIONS.map(({ key, label }) => (
           <div key={key} className="mb-4 last:mb-0">
