@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model DailyLog {
+  id           String   @id @default(uuid())
+  date         DateTime @db.Date
+  dsa          String?
+  development  String?
+  mathsOther   String?  @map("maths_other")
+  dayIntensity Int      @map("day_intensity")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("daily_logs")
+}
+
+model MonthlyGoal {
+  id        String    @id @default(uuid())
+  month     DateTime    @unique
+  goalText  String    @map("goal_text")
+  achieved  Boolean   @default(false)
+  lockedAt  DateTime? @map("locked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("monthly_goals")
+}

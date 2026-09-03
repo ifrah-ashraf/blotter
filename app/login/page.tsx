@@ -1,11 +1,9 @@
-import React from 'react'
+export default async function Page() {
+  
 
-function page() {
   return (
-    <div>
-      This will be the login page 
-    </div>
+    <h1>
+      This page will soon be transformed into read page
+    </h1>
   )
 }
-
-export default page
