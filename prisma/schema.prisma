@@ -14,7 +14,7 @@ datasource db {
 
 model DailyLog {
   id           String   @id @default(uuid())
-  date         DateTime @db.Date
+  date         DateTime @db.Date @unique
   dsa          String?
   development  String?
   mathsOther   String?  @map("maths_other")
@@ -26,10 +26,9 @@ model DailyLog {
 
 model MonthlyGoal {
   id        String    @id @default(uuid())
-  month     DateTime    @unique
+  month     DateTime  @unique
   goalText  String    @map("goal_text")
-  achieved  Boolean   @default(false)
-  lockedAt  DateTime? @map("locked_at")
+  achieved  Boolean?  // null = undecided, true/false = decided. No default.
   createdAt DateTime  @default(now()) @map("created_at")
 
   @@map("monthly_goals")

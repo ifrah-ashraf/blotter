@@ -3,6 +3,8 @@ export type DateRange = {
   to: string;
 };
 
+export const GOAL_EDIT_WINDOW_DAYS = 5; // days 1–5 editable/reviewable
+
 export function toDateKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -47,3 +49,40 @@ export function getMonthlyGoalWindows(date: Date) {
     canMarkAchieved: day <= 3 || day > daysInMonth - 3,
   };
 }
+
+export function toMonthKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export function getPreviousMonthKey(date: Date): string {
+  return toMonthKey(new Date(date.getFullYear(), date.getMonth() - 1, 1));
+}
+
+/**
+ * Pure function, no hooks — easy to unit test.
+ * needsReview: previous month's goal exists and hasn't been decided yet.
+ * canEditGoal: writing window is open, review is clear, and nothing's written yet.
+ */
+export function getGoalWindowState(
+  now: Date,
+  previousGoal: { achieved: boolean | null } | null | undefined,
+  currentGoal: { goalText: string } | null | undefined,
+) {
+  const isWithinEditWindow = now.getDate() <= GOAL_EDIT_WINDOW_DAYS;
+  const needsReview = Boolean(previousGoal) && previousGoal!.achieved === null;
+  return {
+    needsReview,
+    canEditGoal: isWithinEditWindow && !needsReview && !currentGoal?.goalText,
+  };
+}
+
+// API route util function to parse date consistently
+export const dateKeyRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+export function dateKeyToDate(dateKey: string): Date {
+  return new Date(`${dateKey}T00:00:00.000Z`);
+}
+
+export function dateToDateKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+} 
