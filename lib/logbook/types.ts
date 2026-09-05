@@ -2,12 +2,11 @@ export type EntryIntensity = 1 | 2 | 3 | 4;
 
 export type LogEntry = {
   date: string;
-  intensity: EntryIntensity;
+  dayIntensity: EntryIntensity;
   dsa: string;
   development: string;
-  other: string;
+  mathsOther: string;
   createdAt: string;
-  updatedAt: string;
 };
 
 export type LogEntryInput = {
@@ -17,13 +16,6 @@ export type LogEntryInput = {
   development: string;
   other: string;
 };
-
-// export type MonthlyGoal = {
-//   month: string;
-//   text: string;
-//   locked: boolean;
-//   resetDate: string;
-// };
 
 export type LogbookSummary = {
   currentStreak: number;
@@ -46,11 +38,11 @@ export function isEntryIntensity(value: unknown): value is EntryIntensity {
 export type MonthlyGoal = {
   id: string ;
   month: string ;
-  text: string ;
+  goalText: string ;
   created_at?: string ;
-  updated_at?: string ;
+  // updated_at?: string ;
   achieved: boolean | null;
-  locked?: boolean;
+  // locked?: boolean;
 };
 
 // API Response structure

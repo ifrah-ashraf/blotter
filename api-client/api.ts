@@ -17,34 +17,33 @@ export interface ListEntriesParams {
 }
 
 // Mock data
-const mockEntries: LogEntry[] = [
-  {
-    date: '2024-01-15',
-    intensity: 3,
-    dsa: 'Solved binary tree problems',
-    development: 'Built a React component',
-    other: 'Practiced calculus',
-    createdAt: '2024-01-15T12:00:00.000Z',
-    updatedAt: '2024-01-15T12:00:00.000Z',
-  },
-  {
-    date: '2024-01-16',
-    intensity: 4,
-    dsa: 'Graph algorithms',
-    development: 'API integration',
-    other: 'Linear algebra',
-    createdAt: '2024-01-16T12:00:00.000Z',
-    updatedAt: '2024-01-16T12:00:00.000Z',
-  },
-];
+// const mockEntries: LogEntry[] = [
+//   {
+//     date: '2024-01-15',
+//     intensity: 3,
+//     dsa: 'Solved binary tree problems',
+//     development: 'Built a React component',
+//     other: 'Practiced calculus',
+//     createdAt: '2024-01-15T12:00:00.000Z',
+//     updatedAt: '2024-01-15T12:00:00.000Z',
+//   },
+//   {
+//     date: '2024-01-16',
+//     intensity: 4,
+//     dsa: 'Graph algorithms',
+//     development: 'API integration',
+//     other: 'Linear algebra',
+//     createdAt: '2024-01-16T12:00:00.000Z',
+//     updatedAt: '2024-01-16T12:00:00.000Z',
+//   },
+// ];
 
 const mockGoal: MonthlyGoal = {
   id: 'goal-2026-08',
   month: '2026-08',
-  text: 'Complete 30 days of coding shoding',
+  goalText: 'Complete 30 days of coding shoding',
   achieved: null,
   created_at: '2026-08-30T00:00:00.000Z',
-  updated_at: '2026-08-30T00:00:00.000Z',
 };
 
 const mockSummary: LogbookSummary = {
@@ -58,33 +57,65 @@ export const getListEntriesQueryKey = (params?: ListEntriesParams) => {
 };
 
 export const getGetEntryQueryKey = (date: string) => {
-  return [`/api/entries/${date}`] as const;
+  return ['/api/daily-logs', date] as const;
 };
 
 export const getGetSummaryQueryKey = () => {
   return ['/api/summary'] as const;
 };
 
-export const getGetGoalQueryKey = () => {
-  return ['/api/goal'] as const;
+export const getGetGoalQueryKey = (monthKey: string) => {
+  return ['/api/goals', monthKey] as const;
 };
 
-export function useListEntries(params?: ListEntriesParams) {
-  return useQuery({
-    queryKey: getListEntriesQueryKey(params),
-    queryFn: async () => mockEntries,
-  });
-}
 
+// export function useListEntries(params?: ListEntriesParams) {
+//   return useQuery({
+//     queryKey: getListEntriesQueryKey(params),
+//     queryFn: async () => mockEntries,
+//   });
+// }
+
+// to fetch single day log
 export function useGetEntry(date: string) {
   return useQuery({
     queryKey: getGetEntryQueryKey(date),
     queryFn: async () => {
-      const entry = mockEntries.find((e) => e.date === date);
-      if (!entry) throw new Error('Entry not found');
-      return entry;
+      const res = await fetch(`/api/daily-logs?date=${date}`);
+      if (!res.ok) throw new Error("Failed to fetch entry");
+      return res.json() as Promise<LogEntry | undefined>;
     },
     enabled: !!date,
+  });
+}
+// to post daily log
+export function useCreateEntry() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: LogEntry) => {
+      const res = await fetch("/api/daily-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: input.date,
+          dsa: input.dsa,
+          development: input.development,
+          mathsOther: input.mathsOther,
+          dayIntensity: input.dayIntensity,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save entry");
+      return res.json() as Promise<LogEntry>;
+    },
+    onSuccess: (entry) => {
+      // Directly update the cache for that date
+      queryClient.setQueryData(
+        getGetEntryQueryKey(entry.date),
+        entry
+      );
+    },
   });
 }
 
@@ -95,43 +126,55 @@ export function useGetSummary() {
   });
 }
 
-export function useGetGoal() {
+// useGetGoal
+export function useGetGoal(monthKey: string) {
   return useQuery({
-    queryKey: getGetGoalQueryKey(),
-    queryFn: async () => mockGoal,
-  });
+    queryKey: getGetGoalQueryKey(monthKey),
+    queryFn: () => fetch(`/api/goals?month=${monthKey}`).then((r) => r.json())
+  })
 }
 
-export function useCreateEntry() {
+
+// useCreateGoal
+export function useCreateGoal(monthKey: string) {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (input: LogEntryInput) => {
-      const now = new Date().toISOString();
-      const newEntry: LogEntry = { ...input, createdAt: now, updatedAt: now };
-      mockEntries.push(newEntry);
-      return newEntry;
-    },
-    onSuccess: (newEntry) => {
-      queryClient.setQueryData<LogEntry[]>(getListEntriesQueryKey(), (old) =>
-        old ? [...old, newEntry] : [newEntry],
-      );
-      queryClient.setQueryData(getGetEntryQueryKey(newEntry.date), newEntry);
-    },
-  });
-}
+    mutationFn: async (input: { text: string }) => {
+      const res = await fetch("/api/goals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month: monthKey, goalText: input.text })
+      })
 
-export function useCreateGoal() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (input: GoalInput) => {
-      const now = new Date().toISOString();
-      const created: MonthlyGoal = { ...mockGoal, text: input.text, created_at: now, updated_at: now };
-      return created;
+      if (!res.ok) throw new Error("Failed to save goal");
+      return res.json() as Promise<MonthlyGoal>;
     },
     onSuccess: (goal) => {
-      queryClient.setQueryData(getGetGoalQueryKey(), goal);
+      queryClient.setQueryData(getGetGoalQueryKey(monthKey), goal)
+    }
+  })
+}
+
+// update the last month Goal
+export function useUpdateGoalAchieved(monthKey: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, achieved }: { id: string; achieved: boolean }) => {
+      const res = await fetch(`/api/goals/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ achieved }),
+      });
+      if (!res.ok) throw new Error("Failed to update goal");
+      return res.json() as Promise<MonthlyGoal>;
+    },
+    onSuccess: () => {
+      // Fix: Invalidate the list query so it refetches the updated array
+      queryClient.invalidateQueries({
+        queryKey: getGetGoalQueryKey(monthKey)
+      });
     },
   });
 }
+

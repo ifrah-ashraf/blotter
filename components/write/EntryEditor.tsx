@@ -1,22 +1,22 @@
-import type { EntryIntensity, LogEntry, LogEntryInput } from '@/lib/logbook/types';
+import type { EntryIntensity, LogEntry } from '@/lib/logbook/types';
 import { useState } from 'react';
 import type { SyntheticEvent } from 'react';
 
 type EntryEditorProps = {
   date: string;
-  entry?: LogEntryInput;
+  entry?: LogEntry;
   isSaving: boolean;
   saveError?: string;
-  onSave: (data: LogEntryInput) => void;
+  onSave: (data: LogEntry) => void;
 };
 
 const SECTIONS = [
   { key: 'dsa' as const, label: 'dsa' },
   { key: 'development' as const, label: 'development' },
-  { key: 'other' as const, label: 'maths / other' },
+  { key: 'mathsOther' as const, label: 'maths / other' },
 ];
 
-const blank = { intensity: 3 as EntryIntensity, dsa: '', development: '', other: '' };
+const blank = { dayIntensity: 3 as EntryIntensity, dsa: '', development: '', mathsOther: '' };
 
 export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryEditorProps) {
   const [form, setForm] = useState(blank);
@@ -41,20 +41,27 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryE
     );
   }
 
-  const updateContent = (key: 'dsa' | 'development' | 'other', value: string) =>
+  const updateContent = (key: 'dsa' | 'development' | 'mathsOther', value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
   const updateIntensity = (value: EntryIntensity) =>
-    setForm((current) => ({ ...current, intensity: value }));
+    setForm((current) => ({ ...current, dayIntensity: value }));
 
   const submit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.dsa.trim() && !form.development.trim() && !form.other.trim()) {
+    if (!form.dsa.trim() && !form.development.trim() && !form.mathsOther.trim()) {
       setValidation('Leave one trace before saving. One sentence is enough.');
       return;
     }
     setValidation('');
-    onSave({ date, ...form });
+    onSave({
+      date,
+      dayIntensity: form.dayIntensity,
+      dsa: form.dsa,
+      development: form.development,
+      mathsOther: form.mathsOther,
+      createdAt: new Date().toISOString(),
+    });
   };
 
   return (
@@ -93,7 +100,7 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryE
                 onClick={() => updateIntensity(level as EntryIntensity)}
                 data-testid={`button-intensity-${level}`}
                 className={`min-w-0 flex-1 border px-1 py-[9px] text-center text-[10px] uppercase tracking-[.5px] transition-colors ${
-                  form.intensity === level
+                  form.dayIntensity === level
                     ? level === 3
                       ? 'border-[#4fa63f] bg-[#4fa63f] font-bold text-black'
                       : level === 4

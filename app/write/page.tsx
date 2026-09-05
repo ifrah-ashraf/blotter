@@ -1,8 +1,7 @@
 "use client";
 import { Check, RotateCcw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  getGetEntryQueryKey,
   getGetSummaryQueryKey,
   getListEntriesQueryKey,
   getGetGoalQueryKey,
@@ -10,34 +9,38 @@ import {
   useGetEntry,
   useGetGoal,
   useCreateGoal,
+  useUpdateGoalAchieved,
 } from "@/api-client";
-import { LogEntryInput } from "@/lib/logbook/types";
+import { LogEntry } from "@/lib/logbook/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { EntryEditor } from "@/components/write/EntryEditor";
 import { GoalCard } from "@/components/goal/goal-write/GoalCard";
-import { toDateKey, getMonthlyGoalWindows } from "@/lib/logbook/date";
+import {
+  toDateKey,
+  toMonthKey,
+  getPreviousMonthKey,
+  getGoalWindowState,
+} from "@/lib/logbook/date";
 
 export default function WritePage() {
   const queryClient = useQueryClient();
   const now = useMemo(() => new Date(), []);
   const today = useMemo(() => toDateKey(now), [now]);
-  const { canEditGoal, canMarkAchieved } = useMemo(
-    () => getMonthlyGoalWindows(now),
-    [now],
-  );
+  const currentMonthKey = useMemo(() => toMonthKey(now), [now]);
+  const previousMonthKey = useMemo(() => getPreviousMonthKey(now), [now]);
 
   const entryQuery = useGetEntry(today);
-  const goalQuery = useGetGoal();
+  const currentGoalQuery = useGetGoal(currentMonthKey);
+  const previousGoalQuery = useGetGoal(previousMonthKey);
+
   const [savedNotice, setSavedNotice] = useState("");
   const [goalDraft, setGoalDraft] = useState("");
 
-  // useEffect(() => {
-  //   setGoalDraft(goalQuery.data?.goal ?? ""); 
-  // }, [goalQuery.data]);
-
   const createEntry = useCreateEntry();
-  const createGoal = useCreateGoal();
+  const createGoal = useCreateGoal(currentMonthKey);
+  const updateGoalAchieved = useUpdateGoalAchieved(previousMonthKey);
 
+  
   const range = useMemo(() => {
     const date = new Date(`${today}T12:00:00`);
     return {
@@ -51,22 +54,15 @@ export default function WritePage() {
     window.setTimeout(() => setSavedNotice(""), 2500);
   };
 
-  const saveEntry = (data: LogEntryInput) => {
-    createEntry.mutate(data, {
-      onSuccess: () => {
-        void queryClient.invalidateQueries({
-          queryKey: getListEntriesQueryKey(range),
-        });
-        void queryClient.invalidateQueries({
-          queryKey: getGetEntryQueryKey(today),
-        });
-        void queryClient.invalidateQueries({
-          queryKey: getGetSummaryQueryKey(),
-        });
-        flashNotice("record pressed into the blotter");
-      },
-    });
-  };
+  const saveEntry = (data: LogEntry) => {
+  createEntry.mutate(data, {
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: getListEntriesQueryKey(range) });
+      void queryClient.invalidateQueries({ queryKey: getGetSummaryQueryKey() });
+      flashNotice("record pressed into the blotter");
+    },
+  });
+};
 
   const saveGoal = () => {
     const trimmed = goalDraft.trim();
@@ -76,21 +72,62 @@ export default function WritePage() {
       {
         onSuccess: () => {
           void queryClient.invalidateQueries({
-            queryKey: getGetGoalQueryKey(),
+            queryKey: getGetGoalQueryKey(currentMonthKey),
           });
+          setGoalDraft("");
           flashNotice("intention set for the month");
         },
       },
     );
   };
 
-  // TODO: MonthlyGoal/GoalInput don't have an `achieved` field yet — wire this
-  // once that's added to the type + mock. For now the checkbox is inert.
-  const toggleAchieved = (_achieved: boolean) => {};
+  const markAchieved = (id: string, achieved: boolean) => {
+    updateGoalAchieved.mutate(
+      { id, achieved },
+      {
+        onSuccess: () => {
+          flashNotice(
+            achieved
+              ? "last month marked achieved"
+              : "last month marked not achieved",
+          );
+        },
+      },
+    );
+  };
 
-  //const isLoading = entryQuery.isLoading || goalQuery.isLoading; // remove it for smooth loading
-  const isLoading = false;
-  const isError = goalQuery.isError;
+  const isLoading =
+    entryQuery.isLoading ||
+    currentGoalQuery.isLoading ||
+    previousGoalQuery.isLoading;
+
+  const isError =
+    entryQuery.isError || 
+    currentGoalQuery.isError || previousGoalQuery.isError;
+
+  const { needsReview, canEditGoal } = getGoalWindowState(
+    now,
+    previousGoalQuery.data,
+    currentGoalQuery.data,
+  );
+
+  console.log({
+    entry: {
+      status: entryQuery.status,
+      isLoading: entryQuery.isLoading,
+      data: entryQuery.data,
+    },
+    current: {
+      status: currentGoalQuery.status,
+      isLoading: currentGoalQuery.isLoading,
+      data: currentGoalQuery.data,
+    },
+    previous: {
+      status: previousGoalQuery.status,
+      isLoading: previousGoalQuery.isLoading,
+      data: previousGoalQuery.data,
+    },
+  });
 
   return (
     <div className="blotter-app">
@@ -121,14 +158,15 @@ export default function WritePage() {
               write mode / unavailable
             </p>
             <p className="mt-2 text-[11.5px] leading-7 text-[#6b7268]">
-              Today&apos;s page could not be opened. Try the connection again before
-              writing.
+              Today&apos;s page could not be opened. Try the connection again
+              before writing.
             </p>
             <button
               type="button"
               onClick={() => {
                 void entryQuery.refetch();
-                void goalQuery.refetch();
+                void currentGoalQuery.refetch();
+                void previousGoalQuery.refetch();
               }}
               data-testid="button-retry-write"
               className="mt-5 border border-primary px-3 py-2 text-[10px] uppercase tracking-[1px] text-primary hover:bg-primary hover:text-primary-foreground"
@@ -141,9 +179,10 @@ export default function WritePage() {
         {!isLoading && !isError && (
           <>
             <GoalCard
-              goal={goalQuery.data}
+              currentGoal={currentGoalQuery.data}
+              previousGoal={previousGoalQuery.data}
               canEditGoal={canEditGoal}
-              canMarkAchieved={canMarkAchieved}
+              needsReview={needsReview}
               value={goalDraft}
               onChange={setGoalDraft}
               onSaveGoal={saveGoal}
@@ -151,8 +190,8 @@ export default function WritePage() {
               goalError={
                 createGoal.error ? "The goal could not be saved." : undefined
               }
-              onToggleAchieved={toggleAchieved}
-              isSavingAchieved={false}
+              onMarkAchieved={markAchieved}
+              isSavingAchieved={updateGoalAchieved.isPending}
             />
             <EntryEditor
               date={today}
