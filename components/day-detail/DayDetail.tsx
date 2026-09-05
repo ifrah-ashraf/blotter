@@ -36,12 +36,12 @@ export function DayDetail({ date, entry, isLoading, isError, onDelete }: DayDeta
         <div>
           <Field label="dsa" value={entry.dsa} testId="field-day-dsa" />
           <Field label="development" value={entry.development} testId="field-day-development" />
-          <Field label="maths / other" value={entry.other} testId="field-day-other" />
+          <Field label="maths / other" value={entry.mathsOther} testId="field-day-other" />
         </div>
       ) : (
         <div className="py-[6px]" data-testid="status-day-empty">
           <p className="text-[11.5px] text-[#6b7268]">No entry logged for this day.</p>
-          <Link href="/write" data-testid="link-write-empty-day" className="mt-4 inline-block text-[10px] uppercase tracking-[1px] text-[#ffb000] hover:underline">write today</Link>
+          {/* <Link href="/write" data-testid="link-write-empty-day" className="mt-4 inline-block text-[10px] uppercase tracking-[1px] text-[#ffb000] hover:underline">write today</Link> */}
         </div>
       )}
     </section>

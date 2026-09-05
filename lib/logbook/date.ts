@@ -76,7 +76,7 @@ export function getGoalWindowState(
   };
 }
 
-// API route util function to parse date consistently
+// API route util function to parse date consistently across all UTC
 export const dateKeyRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 export function dateKeyToDate(dateKey: string): Date {
@@ -86,3 +86,12 @@ export function dateKeyToDate(dateKey: string): Date {
 export function dateToDateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 } 
+
+export const monthKeyRegex = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+export function monthKeyToDate(monthKey: string): Date {
+  return new Date(`${monthKey}-01T00:00:00.000Z`);
+}
+export function dateToMonthKey(date: Date): string {
+  return date.toISOString().slice(0, 7);
+}
