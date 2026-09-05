@@ -68,13 +68,14 @@ export const getGetGoalQueryKey = (monthKey: string) => {
   return ['/api/goals', monthKey] as const;
 };
 
+export const getListGoalsQueryKey = () => {
+  return ['/api/goals/all'] as const ;
+}
 
-// export function useListEntries(params?: ListEntriesParams) {
-//   return useQuery({
-//     queryKey: getListEntriesQueryKey(params),
-//     queryFn: async () => mockEntries,
-//   });
-// }
+export const getListLogsQueryKey = () => {
+  return ['/api/daily-logs/all'] as const ;
+}
+
 
 // to fetch single day log
 export function useGetEntry(date: string) {
@@ -87,6 +88,13 @@ export function useGetEntry(date: string) {
     },
     enabled: !!date,
   });
+}
+// to fetch all logs
+export function useListLogs(){
+  return useQuery({
+    queryKey: getListLogsQueryKey() ,
+    queryFn: () => fetch(`/api/daily-logs/all`).then((r) => r.json()) 
+  })
 }
 // to post daily log
 export function useCreateEntry() {
@@ -126,7 +134,7 @@ export function useGetSummary() {
   });
 }
 
-// useGetGoal
+// useGetGoal using month key
 export function useGetGoal(monthKey: string) {
   return useQuery({
     queryKey: getGetGoalQueryKey(monthKey),
@@ -134,7 +142,13 @@ export function useGetGoal(monthKey: string) {
   })
 }
 
-
+// get all goals
+export function useListGoals(){
+  return useQuery({
+    queryKey: getListGoalsQueryKey() ,
+    queryFn: () => fetch(`/api/goals/all`).then((r) => r.json()) 
+  })
+}
 // useCreateGoal
 export function useCreateGoal(monthKey: string) {
   const queryClient = useQueryClient();

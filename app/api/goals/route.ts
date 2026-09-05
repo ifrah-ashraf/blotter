@@ -1,15 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const monthKeyRegex = /^\d{4}-(0[1-9]|1[0-2])$/;
-
-function monthKeyToDate(monthKey: string): Date {
-  return new Date(`${monthKey}-01T00:00:00.000Z`);
-}
-function dateToMonthKey(date: Date): string {
-  return date.toISOString().slice(0, 7);
-}
+import { monthKeyRegex , monthKeyToDate , dateToMonthKey } from "@/lib/logbook/date";
 
 const createSchema = z.object({
   month: z.string().regex(monthKeyRegex),

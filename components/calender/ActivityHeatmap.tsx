@@ -4,7 +4,7 @@ import type { LogEntry } from '@/lib/logbook/types';
 import { toDateKey , getRollingYearRange } from '@/lib/logbook/date';
 
 type ActivityHeatmapProps = {
-  entries: LogEntry[];
+  entries?: LogEntry[];
   selectedDate: string;
   onSelect: (date: string) => void;
 };
@@ -94,7 +94,7 @@ function buildMonthMarkers(weeks: Date[][], from: Date, to: Date): MonthMarker[]
   return markers;
 }
 
-export function ActivityHeatmap({ entries, selectedDate, onSelect }: ActivityHeatmapProps) {
+export function ActivityHeatmap({ entries = [], selectedDate, onSelect }: ActivityHeatmapProps) {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -193,7 +193,7 @@ export function ActivityHeatmap({ entries, selectedDate, onSelect }: ActivityHea
                 const entry = entryByDate.get(dateKey);
                 const isInRange = date >= from && date <= to;
                 const isSelected = dateKey === selectedDate;
-                const tier = Math.max(0, Math.min(4, entry?.intensity ?? 0));
+                const tier = Math.max(0, Math.min(4, entry?.dayIntensity ?? 0));
                 const cellStyle = {
                   gridColumn: column + 2,
                   gridRow: row + 1,
@@ -217,7 +217,7 @@ export function ActivityHeatmap({ entries, selectedDate, onSelect }: ActivityHea
                     type="button"
                     onClick={() => onSelect(dateKey)}
                     data-testid={`button-heatmap-day-${dateKey}`}
-                    aria-label={`${dateKey}${entry ? `, intensity ${entry.intensity}` : ', no entry'}`}
+                    aria-label={`${dateKey}${entry ? `, intensity ${entry.dayIntensity}` : ', no entry'}`}
                     className={`year-heatmap-cell ${isSelected ? 'selected' : ''}`}
                     style={cellStyle}
                   />

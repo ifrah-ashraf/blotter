@@ -4,31 +4,44 @@ import { ActivityHeatmap } from "@/components/calender/ActivityHeatmap";
 import { toDateKey } from "@/lib/logbook/date";
 import { DayDetail } from "@/components/day-detail/DayDetail";
 import { GoalCard } from "@/components/goal/goal-read/GoalCard";
-import { DUMMY_LOG_ENTRIES, MONTHLY_GOAL_DUMMY_DATA } from "@/api-client/dummy-data";
+import { useListGoals, useListLogs } from "@/api-client";
+import { LogEntry } from "@/lib/logbook/types";
 
 export default function ReadPage() {
-  const [selectedDate, setSelectedDate] = useState(toDateKey(new Date()));
-  const [currentMonth, setCurrentMonth] = useState("2026-08");
-  const [data] = useState(MONTHLY_GOAL_DUMMY_DATA); // Replace with API fetch
+  const todayKey = useMemo(() => toDateKey(new Date()), []);
 
-  // Single source of truth for entries — swap this line back to
-  // `useLogbook().entries` once the real API is wired in.
-  const entries = DUMMY_LOG_ENTRIES;
+  // null = "nothing explicitly clicked yet" — distinct from "today was clicked."
+  // Collapsing these into one string field is what caused the fallback to
+  // hijack real clicks.
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(todayKey.slice(0, 7));
 
-  // Derived, not synced: no effect, no cascading render.
-  // If selectedDate isn't in entries, fall back to the latest entry —
-  // computed during render instead of pushed back into state.
-  const effectiveDate = useMemo(() => {
-    if (!entries.length) return selectedDate;
-    const exists = entries.some((entry) => entry.date.slice(0, 10) === selectedDate);
-    if (exists) return selectedDate;
-    const latest = [...entries].sort((a, b) => b.date.localeCompare(a.date))[0];
-    return latest ? latest.date.slice(0, 10) : selectedDate;
-  }, [entries, selectedDate]);
+  const goalQuery = useListGoals();
+  const logsQuery = useListLogs();
 
-  const selectedEntry = entries.find(
-    (entry) => entry.date.slice(0, 10) === effectiveDate,
+  const latestEntryDate = useMemo(() => {
+    if (!logsQuery.data?.length) return null;
+    return [...logsQuery.data].sort((a, b) => b.date.localeCompare(a.date))[0].date.slice(0, 10);
+  }, [logsQuery.data]);
+
+  // Only used before the user has clicked anything: prefer today if today
+  // has a log, otherwise fall back to the most recent logged day.
+  const defaultDate = useMemo(() => {
+    if (!logsQuery.data?.length) return todayKey;
+    const todayHasEntry = logsQuery.data.some((entry: LogEntry) => entry.date.slice(0, 10) === todayKey);
+    return todayHasEntry ? todayKey : (latestEntryDate ?? todayKey);
+  }, [logsQuery.data, todayKey, latestEntryDate]);
+
+  // Once the user has clicked, this is final — no silent override, even if
+  // the clicked day has no entry.
+  const effectiveDate = selectedDate ?? defaultDate;
+
+  const displayedEntry = logsQuery.data?.find(
+    (entry: LogEntry) => entry.date.slice(0, 10) === effectiveDate
   );
+
+  if (logsQuery.isLoading) return <p>Loading logs...</p>;
+  if (logsQuery.isError) return <p>Error loading logs</p>;
 
   return (
     <div className="page-enter">
@@ -41,13 +54,17 @@ export default function ReadPage() {
                 <b>69</b> day streak
               </div>
             </div>
-            <GoalCard data={data} currentMonth={currentMonth} onMonthChange={setCurrentMonth} />
+            <GoalCard
+              data={goalQuery.data}
+              currentMonth={currentMonth}
+              onMonthChange={setCurrentMonth}
+            />
             <ActivityHeatmap
-              entries={entries}
+              entries={logsQuery.data}
               selectedDate={effectiveDate}
               onSelect={setSelectedDate}
             />
-            <DayDetail date={effectiveDate} entry={selectedEntry} />
+            <DayDetail date={effectiveDate} entry={displayedEntry} />
           </div>
         </div>
       </div>
