@@ -83,7 +83,7 @@ export function useGetEntry(date: string) {
     queryFn: async () => {
       const res = await fetch(`/api/daily-logs?date=${date}`);
       if (!res.ok) throw new Error("Failed to fetch entry");
-      return res.json() as Promise<LogEntry | null>;
+      return res.json() as Promise<LogEntry | undefined>;
     },
     enabled: !!date,
   });

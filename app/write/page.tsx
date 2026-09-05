@@ -2,7 +2,6 @@
 import { Check, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
-  getGetEntryQueryKey,
   getGetSummaryQueryKey,
   getListEntriesQueryKey,
   getGetGoalQueryKey,
@@ -12,7 +11,7 @@ import {
   useCreateGoal,
   useUpdateGoalAchieved,
 } from "@/api-client";
-import { LogEntry, LogEntryInput } from "@/lib/logbook/types";
+import { LogEntry } from "@/lib/logbook/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { EntryEditor } from "@/components/write/EntryEditor";
 import { GoalCard } from "@/components/goal/goal-write/GoalCard";
@@ -41,19 +40,7 @@ export default function WritePage() {
   const createGoal = useCreateGoal(currentMonthKey);
   const updateGoalAchieved = useUpdateGoalAchieved(previousMonthKey);
 
-  // Map API response to editor's expected shape
-  const entryForEditor = useMemo(() => {
-    const data = entryQuery.data;
-    if (!data) return undefined;
-    return {
-      date: data.date,
-      intensity: data.dayIntensity,
-      dsa: data.dsa,
-      development: data.development,
-      other: data.mathsOther,
-    };
-  }, [entryQuery.data]);
-
+  
   const range = useMemo(() => {
     const date = new Date(`${today}T12:00:00`);
     return {
@@ -208,7 +195,7 @@ export default function WritePage() {
             />
             <EntryEditor
               date={today}
-              entry={entryForEditor}
+              entry={entryQuery.data}
               isSaving={createEntry.isPending}
               saveError={
                 createEntry.error
