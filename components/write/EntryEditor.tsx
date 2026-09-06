@@ -124,7 +124,7 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryE
         type="submit"
         disabled={isSaving}
         data-testid="button-save-entry"
-        className="mt-[22px] w-full bg-[#ffb000] px-4 py-3 text-[11.5px] font-bold uppercase tracking-[1.5px] text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
+        className="mt-[22px] w-full bg-[#ffb000] px-4 py-3 text-[11.5px] font-bold uppercase tracking-[1.5px] text-black transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60 hover:cursor-pointer"
       >
         {isSaving ? 'saving' : 'log today'}
       </button>
