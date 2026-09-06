@@ -10,6 +10,7 @@ import {
   useGetGoal,
   useCreateGoal,
   useUpdateGoalAchieved,
+  useLogout,
 } from "@/api-client";
 import { LogEntry } from "@/lib/logbook/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ export default function WritePage() {
   const currentMonthKey = useMemo(() => toMonthKey(now), [now]);
   const previousMonthKey = useMemo(() => getPreviousMonthKey(now), [now]);
 
+  const logout = useLogout();
   const entryQuery = useGetEntry(today);
   const currentGoalQuery = useGetGoal(currentMonthKey);
   const previousGoalQuery = useGetGoal(previousMonthKey);
@@ -40,7 +42,6 @@ export default function WritePage() {
   const createGoal = useCreateGoal(currentMonthKey);
   const updateGoalAchieved = useUpdateGoalAchieved(previousMonthKey);
 
-  
   const range = useMemo(() => {
     const date = new Date(`${today}T12:00:00`);
     return {
@@ -55,14 +56,18 @@ export default function WritePage() {
   };
 
   const saveEntry = (data: LogEntry) => {
-  createEntry.mutate(data, {
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: getListEntriesQueryKey(range) });
-      void queryClient.invalidateQueries({ queryKey: getGetSummaryQueryKey() });
-      flashNotice("record pressed into the blotter");
-    },
-  });
-};
+    createEntry.mutate(data, {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({
+          queryKey: getListEntriesQueryKey(range),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: getGetSummaryQueryKey(),
+        });
+        flashNotice("record pressed into the blotter");
+      },
+    });
+  };
 
   const saveGoal = () => {
     const trimmed = goalDraft.trim();
@@ -102,8 +107,7 @@ export default function WritePage() {
     previousGoalQuery.isLoading;
 
   const isError =
-    entryQuery.isError || 
-    currentGoalQuery.isError || previousGoalQuery.isError;
+    entryQuery.isError || currentGoalQuery.isError || previousGoalQuery.isError;
 
   const { needsReview, canEditGoal } = getGoalWindowState(
     now,
@@ -111,30 +115,41 @@ export default function WritePage() {
     currentGoalQuery.data,
   );
 
-  console.log({
-    entry: {
-      status: entryQuery.status,
-      isLoading: entryQuery.isLoading,
-      data: entryQuery.data,
-    },
-    current: {
-      status: currentGoalQuery.status,
-      isLoading: currentGoalQuery.isLoading,
-      data: currentGoalQuery.data,
-    },
-    previous: {
-      status: previousGoalQuery.status,
-      isLoading: previousGoalQuery.isLoading,
-      data: previousGoalQuery.data,
-    },
-  });
+  // console.log({
+  //   entry: {
+  //     status: entryQuery.status,
+  //     isLoading: entryQuery.isLoading,
+  //     data: entryQuery.data,
+  //   },
+  //   current: {
+  //     status: currentGoalQuery.status,
+  //     isLoading: currentGoalQuery.isLoading,
+  //     data: currentGoalQuery.data,
+  //   },
+  //   previous: {
+  //     status: previousGoalQuery.status,
+  //     isLoading: previousGoalQuery.isLoading,
+  //     data: previousGoalQuery.data,
+  //   },
+  // });
 
   return (
     <div className="blotter-app">
       <div className="blotter-wrap">
         <div className="blotter-masthead">
           <h1>THE BLOTTER</h1>
-          <div className="blotter-streak">write mode</div>
+          <div className="flex items-center gap-3">
+            <div className="blotter-streak">write mode</div>
+            <button
+              type="button"
+              onClick={() => logout.mutate()}
+              disabled={logout.isPending}
+              data-testid="button-logout"
+              className="border border-[#262b23] px-2 py-1 font-mono text-[9px] uppercase tracking-[1px] text-[#6b7268] hover:cursor-pointer hover:border-destructive hover:text-destructive disabled:cursor-wait disabled:opacity-60"
+            >
+              {logout.isPending ? "…" : "logout"}
+            </button>
+          </div>
         </div>
 
         {savedNotice && (

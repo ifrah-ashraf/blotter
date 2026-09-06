@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { EntryIntensity, LogEntry, LogEntryInput, MonthlyGoal } from '@/lib/logbook/types';
+import type {  LogEntry, MonthlyGoal } from '@/lib/logbook/types';
+import { useRouter } from 'next/navigation';
 
 export interface GoalInput {
   text: string;
@@ -16,41 +17,6 @@ export interface ListEntriesParams {
   endDate?: string;
 }
 
-// Mock data
-// const mockEntries: LogEntry[] = [
-//   {
-//     date: '2024-01-15',
-//     intensity: 3,
-//     dsa: 'Solved binary tree problems',
-//     development: 'Built a React component',
-//     other: 'Practiced calculus',
-//     createdAt: '2024-01-15T12:00:00.000Z',
-//     updatedAt: '2024-01-15T12:00:00.000Z',
-//   },
-//   {
-//     date: '2024-01-16',
-//     intensity: 4,
-//     dsa: 'Graph algorithms',
-//     development: 'API integration',
-//     other: 'Linear algebra',
-//     createdAt: '2024-01-16T12:00:00.000Z',
-//     updatedAt: '2024-01-16T12:00:00.000Z',
-//   },
-// ];
-
-const mockGoal: MonthlyGoal = {
-  id: 'goal-2026-08',
-  month: '2026-08',
-  goalText: 'Complete 30 days of coding shoding',
-  achieved: null,
-  created_at: '2026-08-30T00:00:00.000Z',
-};
-
-const mockSummary: LogbookSummary = {
-  totalEntries: 25,
-  currentStreak: 5,
-  averageIntensity: 3.2,
-};
 
 export const getListEntriesQueryKey = (params?: ListEntriesParams) => {
   return ['/api/entries', ...(params ? [params] : [])] as const;
@@ -127,12 +93,12 @@ export function useCreateEntry() {
   });
 }
 
-export function useGetSummary() {
-  return useQuery({
-    queryKey: getGetSummaryQueryKey(),
-    queryFn: async () => mockSummary,
-  });
-}
+// export function useGetSummary() {
+//   return useQuery({
+//     queryKey: getGetSummaryQueryKey(),
+//     queryFn: async () => mockSummary,
+//   });
+// }
 
 // useGetGoal using month key
 export function useGetGoal(monthKey: string) {
@@ -188,6 +154,23 @@ export function useUpdateGoalAchieved(monthKey: string) {
       queryClient.invalidateQueries({
         queryKey: getGetGoalQueryKey(monthKey)
       });
+    },
+  });
+}
+
+export function useLogout() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      if (!res.ok) throw new Error("Failed to log out");
+    },
+    onSuccess: () => {
+      queryClient.clear(); // drop any cached write-mode data now that the session is gone
+      router.push("/login");
+      router.refresh();
     },
   });
 }
