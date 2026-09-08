@@ -3,6 +3,7 @@ import { JetBrains_Mono } from 'next/font/google'
 import "./globals.css";
 import { Providers } from './provider'
 import { Footer } from '@/components/ui/footer'
+import { Analytics } from "@vercel/analytics/next"
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className="flex-1">{children}</div>
         </Providers>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
