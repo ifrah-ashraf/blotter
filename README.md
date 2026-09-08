@@ -4,11 +4,10 @@ A personal logbook for staying consistent across three things I kept dropping th
 
 This isn't about a resume line. It's about making myself worth more than a paycheck shaping something with intention and feeling the work, instead of juggling between things badly and calling it progress.
 
-**Live:** [blotter-pi.vercel.app](https://blotter-pi.vercel.app)
 
 ## Features
 
-> Save and track daily progress from anywhere — no complex system required.
+> Save and track daily progress from anywhere, no complex system required.
 >
 > Set a monthly goal around the three topics that matter to you, and work toward it.
 >
