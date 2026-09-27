@@ -25,7 +25,6 @@ export default function LoginPage() {
         return;
       }
       router.push("/write");
-      router.refresh();
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +77,7 @@ export default function LoginPage() {
             type="submit"
             disabled={isSubmitting}
             data-testid="button-login-submit"
-            className="w-full bg-[#ffb000] px-4 py-3 text-[11.5px] font-bold uppercase tracking-[1.5px] text-black disabled:cursor-wait disabled:opacity-60"
+            className="w-full bg-[#ffb000] hover:cursor-pointer px-4 py-3 text-[11.5px] font-bold uppercase tracking-[1.5px] text-black disabled:cursor-wait disabled:opacity-60"
           >
             {isSubmitting ? "checking" : "log in"}
           </button>

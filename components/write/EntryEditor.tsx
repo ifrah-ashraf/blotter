@@ -66,7 +66,7 @@ export function EntryEditor({ date, entry, isSaving, saveError, onSave }: EntryE
 
   return (
     <form onSubmit={submit} className="blotter-panel" data-testid="form-entry-editor">
-      <div className="blotter-panel-label">today&apos;s log</div>
+      <div className="blotter-panel-label">{date.split('-').reverse().join('-')} log</div>
       <div>
         {SECTIONS.map(({ key, label }) => (
           <div key={key} className="mb-4 last:mb-0">
