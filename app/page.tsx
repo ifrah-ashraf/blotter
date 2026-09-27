@@ -6,6 +6,7 @@ import { DayDetail } from "@/components/day-detail/DayDetail";
 import { GoalCard } from "@/components/goal/goal-read/GoalCard";
 import { useListGoals, useListLogs } from "@/api-client";
 import { LogEntry } from "@/lib/logbook/types";
+import { useStreak } from "@/hooks/useStreak";
 
 export default function ReadPage() {
   const todayKey = useMemo(() => toDateKey(new Date()), []);
@@ -18,6 +19,9 @@ export default function ReadPage() {
 
   const goalQuery = useListGoals();
   const logsQuery = useListLogs();
+
+  // to calculate the streak of user
+  const streak = useStreak(logsQuery.data)
 
   const latestEntryDate = useMemo(() => {
     if (!logsQuery.data?.length) return null;
@@ -51,7 +55,7 @@ export default function ReadPage() {
             <div className="blotter-masthead">
               <h1>THE BLOTTER</h1>
               <div className="blotter-streak">
-                <b>69</b> day streak
+                <b>{streak}</b> day streak
               </div>
             </div>
             <GoalCard
